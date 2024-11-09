@@ -9,17 +9,17 @@ const urlDatabase = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.send("Hello!"); // Welcome Page of the server
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Example app listening on port ${PORT}!`); // lets client know that server is listnening on PORT
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+app.get("/urls.json", (req, res) => { // Route setup for /urls.json
+  res.json(urlDatabase); // http://localhost:8080/urls.json response as a JSON string of the entire urlDatabase
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+app.get("/hello", (req, res) => { // Route setup for /hello
+  res.send("<html><body>Hello <b>World</b></body></html>\n"); // When visiting http://localhost:8080/hello it would show "Hello World"
 });
