@@ -25,3 +25,13 @@ app.get("/urls.json", (req, res) => { // Route setup for /urls.json
 app.get("/hello", (req, res) => { // Route setup for /hello
   res.send("<html><body>Hello <b>World</b></body></html>\n"); // When visiting http://localhost:8080/hello it would show "Hello World"
 });
+
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase }; // Route setup for /urls
+  res.render("urls_index", templateVars);
+});
+
+app.get("/urls/:id", (req, res) => {
+  const templateVars = { id: req.params.id, longURL: urlDatabase };
+  res.render("urls_show", templateVars);
+});
