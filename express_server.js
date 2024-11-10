@@ -61,31 +61,31 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.post(`/urls/:id/delete`, (req, res) => {
-  const id = req.params.id;
-  delete urlDatabase[id];
+  const id = req.params.id; // Extracts id of URL
+  delete urlDatabase[id]; // Delete URL from database
 
   res.redirect("/urls");
 })
 
-app.get("/urls/:id/edit", (req, res) => {
+app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id]; // Fetch long URL
 
   if (longURL) {
-    const templateVars = { id, longURL };
+    const templateVars = { id, longURL }; // If URL exist it pass and renders the template
     res.render("urls_show", templateVars);
   } else {
-    res.status(404).send("URL not found");
+    res.status(404).send("URL not found"); // Test case if URL not found
   }
 });
 
-app.post("/urls/:id/edit", (req, res) => { 
+app.post("/urls/:id", (req, res) => { 
   const id = req.params.id;
-  const updatedURL = req.body.updatedURL
+  const updatedURL = req.body.updatedURL //Fetch updated URL from form
 
   if (urlDatabase[id]) {
     urlDatabase[id] = updatedURL; 
-    res.redirect("/urls")
+    res.redirect("/urls") // If the update pass we get redirected to saved urls
   } else {
     res.status(404).send("URL not found");
   }
