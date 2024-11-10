@@ -22,7 +22,25 @@
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
       </div>
-      <div class="card-footer text-muted"></div>
+      <div class="card-footer text-muted">
+
+        <h6 class="card-text">Edit</h6>
+
+        <form method="POST" action="/urls/<%= id %>/edit">
+          <div class="form-group">
+            <label for="shortURL">New URL:</label>
+            <input
+              type="text"
+              class="form-control-sm border-primary"
+              name="updatedURL"
+              placeholder="http://"
+              required
+            />
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+
+      </div>
     </div>
     
     <script

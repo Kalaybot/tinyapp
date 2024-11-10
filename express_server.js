@@ -45,7 +45,7 @@ app.post("/urls", (req, res) => {
 
   urlDatabase[id] = longURL;
 
-  res.redirect(`/urls/${id}`); // Redirect to urls/:id. id has value now
+  res.redirect(`/urls`); // Redirect to urls/:id. id has value now
 });
   
 app.get("/urls/:id", (req, res) => {
@@ -66,7 +66,32 @@ app.post(`/urls/:id/delete`, (req, res) => {
 
   res.redirect("/urls");
 })
-    
+
+app.get("/urls/:id/edit", (req, res) => {
+  const id = req.params.id;
+  const longURL = urlDatabase[id];
+
+  if (longURL) {
+    const templateVars = { id, longURL };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(404).send("URL not found");
+  }
+});
+
+app.post("/urls/:id/edit", (req, res) => { 
+  const id = req.params.id;
+  const updatedURL = req.body.updatedURL
+
+  if (urlDatabase[id]) {
+    urlDatabase[id] = updatedURL; 
+    res.redirect("/urls")
+  } else {
+    res.status(404).send("URL not found");
+  }
+});
+
+
 function generateRandomString() { // Function to create the id or shortURL
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
