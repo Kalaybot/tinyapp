@@ -59,6 +59,13 @@ app.get("/u/:id", (req, res) => {
 
   res.redirect(longURL);
 });
+
+app.post(`/urls/:id/delete`, (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+
+  res.redirect("/urls");
+})
     
 function generateRandomString() { // Function to create the id or shortURL
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
