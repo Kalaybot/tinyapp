@@ -27,16 +27,16 @@
       <button type="submit" class="btn btn-outline-dark">Logout</button>
     </form>
     <% } else { %>
-
-    <form method="POST" action="/login">
-      <div class="form-group">
-        <input
-        name="username"
-        placeholder="Username"
-        />
-        <button type="submit" class="btn btn-outline-dark">Login</button>
-      </div>
-    </form>
-    <% } %>
-  </nav>
-</header>
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label for="userLogin"></label>
+          <input
+          name="username"
+          placeholder="Username"
+          />
+          <button type="submit" class="btn btn-outline-dark">Login</button>
+        </div>
+      </form>
+      <% } %>
+    </nav>
+  </header>

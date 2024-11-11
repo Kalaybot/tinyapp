@@ -106,8 +106,12 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const username = req.body.username;
-  res.cookie("username", username);
 
+  if (!username || username === "") {
+    return res.status(400).send("Username cannot be empty")
+  }
+
+  res.cookie("username", username);
   res.redirect("/urls")
 })
 
