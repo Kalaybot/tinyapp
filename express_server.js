@@ -91,6 +91,12 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
+app.post("/login", (req, res) => {
+  res.cookie("username")
+
+  res.redirect("/urls")
+})
+
 
 function generateRandomString() { // Function to create the id or shortURL
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
