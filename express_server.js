@@ -121,6 +121,10 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls")
 })
 
+app.get("/register", (req, res) => {
+  res.render("register")
+})
+
 
 function generateRandomString() { // Function to create the id or shortURL
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
