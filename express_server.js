@@ -1,9 +1,11 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 
 const app =  express();
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: true })); // Translate 'Buffer' data type into a string we can read
+app.use(cookieParser()); // Client cookie is parsed which is used to display their username
 
 app.set("view engine", "ejs");
 
@@ -29,12 +31,19 @@ app.get("/hello", (req, res) => { // Route setup for /hello
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase }; // Route setup for saved urls
+  const templateVars = { 
+    username: req.cookies["username"],
+    urls: urlDatabase 
+  }; // Route setup for saved urls
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new"); // Direct to a route with a form to complete
+  const templateVars = {
+    username: req.cookies["username"] // Displays username in this route
+  };
+
+  res.render("urls_new", templateVars); // Direct to a route with a form to complete
 });
 
 app.post("/urls", (req, res) => {
@@ -49,7 +58,11 @@ app.post("/urls", (req, res) => {
 });
   
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase }; // newly created URLs
+  const templateVars = {
+    username: req.cookies["username"], // Displays username in this route
+    id: req.params.id, 
+    longURL: urlDatabase 
+  }; // newly created URLs
   res.render("urls_show", templateVars);
 });
 
