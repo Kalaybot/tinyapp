@@ -9,6 +9,19 @@ app.use(cookieParser()); // Client cookie is parsed which is used to display the
 
 app.set("view engine", "ejs");
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -31,16 +44,24 @@ app.get("/hello", (req, res) => { // Route setup for /hello
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { 
-    username: req.cookies["username"],
-    urls: urlDatabase 
+  const newUserID = req.cookies["user_id"];
+
+  const user = users[newUserID];
+
+  const templateVars = {
+    user,
+    urls: urlDatabase
   }; // Route setup for saved urls
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+  const newUserID = req.cookies["user_id"];
+
+  const user = users[newUserID];
+
   const templateVars = {
-    username: req.cookies["username"] // Displays username in this route
+    user, // Displays username in this route
   };
 
   res.render("urls_new", templateVars); // Direct to a route with a form to complete
@@ -58,10 +79,14 @@ app.post("/urls", (req, res) => {
 });
   
 app.get("/urls/:id", (req, res) => {
+  const newUserID = req.cookies["user_id"];
+
+  const user = users[newUserID];
+
   const templateVars = {
-    username: req.cookies["username"], // Displays username in this route
-    id: req.params.id, 
-    longURL: urlDatabase 
+    user, // Displays username in this route
+    id: req.params.id,
+    longURL: urlDatabase
   }; // newly created URLs
   res.render("urls_show", templateVars);
 });
@@ -78,7 +103,7 @@ app.post(`/urls/:id/delete`, (req, res) => {
   delete urlDatabase[id]; // Delete URL from database
 
   res.redirect("/urls");
-})
+});
 
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
@@ -92,38 +117,66 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
-app.post("/urls/:id", (req, res) => { 
+app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  const updatedURL = req.body.updatedURL //Fetch updated URL from form
+  const updatedURL = req.body.updatedURL; //Fetch updated URL from form
 
   if (urlDatabase[id]) {
-    urlDatabase[id] = updatedURL; 
-    res.redirect("/urls") // If the update pass we get redirected to saved urls
+    urlDatabase[id] = updatedURL;
+    res.redirect("/urls"); // If the update pass we get redirected to saved urls
   } else {
     res.status(404).send("URL not found");
   }
 });
 
-app.post("/login", (req, res) => {
-  const username = req.body.username;
+app.post("/login", (req, res) => { // Route for login
+  const username = req.body.username; 
 
   if (!username || username === "") {
-    return res.status(400).send("Username cannot be empty")
+    return res.status(400).send("Username cannot be empty");
   }
 
-  res.cookie("username", username);
-  res.redirect("/urls")
-})
+  res.cookie("username", username); // Save client cookie (username)
+  res.redirect("/urls");
+});
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username")
+  res.clearCookie("user_id"); // Logout route, deletes cookie and let you log out
 
-  res.redirect("/urls")
-})
+  res.redirect("/urls");
+});
 
 app.get("/register", (req, res) => {
-  res.render("register")
-})
+  res.render("register"); // Our register template form
+});
+
+app.post("/register", (req, res) => { // Creates new user for App by filling up our form
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send("Email and Password needs to be filled.");
+  }
+
+  for (let userId in users) {
+    if (users[userId].email === email) {
+      return res.status(400).send("Email already exists.");
+    }
+  }
+
+  const newUserID = generateRandomString();
+  
+  users[newUserID] = {
+    id: newUserID,
+    email: email,
+    password: password,
+  };
+
+  res.cookie("user_id", newUserID);
+  console.log("New user:", users);
+
+  res.redirect("/urls");
+});
 
 
 function generateRandomString() { // Function to create the id or shortURL

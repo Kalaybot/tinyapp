@@ -19,9 +19,9 @@
       </div>
     </div>
 
-    <% if (username) { %>
+    <% if (user) { %>
       <span class="navbar-text-black mr-2">
-        Logged in as: <%= username %>!
+        Logged in as: <%= user.email %>!
       </span>
     <form method="POST" action="/logout">
       <button type="submit" class="btn btn-outline-dark">Logout</button>
