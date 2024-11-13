@@ -158,10 +158,9 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
     return res.status(400).send("Email and Password needs to be filled.");
   }
 
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return res.status(400).send("Email already exists.");
-    }
+  const user = userLooker(email)
+  if (user) {
+    return res.status(400).send("Email already exist.");
   }
 
   const newUserID = generateRandomString();
@@ -188,4 +187,13 @@ function generateRandomString() { // Function to create the id or shortURL
     result += characters[randomCharacters];
   }
   return result;
+}
+
+const userLooker = (email) => {
+  for (const newUserID in users) {
+    if (users[newUserID].email === email) {
+      return users[newUserID];
+    }
+  }
+  return null;
 }
