@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet"
+  href="http://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+  integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+  crossorigin="anonymous"
+/>
+
+  <title>Login</title>
+</head>
+<body>
+  <h3>Login</h3>
+  <form method="POST" action="/login">
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input
+      type="email"
+      name="email"
+      class="form-control-sm"
+      id="email"
+      placeholder="Enter your email"
+      required
+      />
+
+      <label for="password">Password:</label>
+      <input
+      type="password"
+      name="password"
+      class="form-control-sm"
+      id="password"
+      placeholder="Enter your password"
+      required
+      />
+    </div>
+
+    <button type="submit" class="btn btn-outline-primary">Login</button>
+  </form>
+</body>
+</html>

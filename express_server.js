@@ -178,6 +178,11 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
 });
 
 
+app.get("/login", (req, res) => {
+  res.render("login");
+})
+
+
 function generateRandomString() { // Function to create the id or shortURL
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
