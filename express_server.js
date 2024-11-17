@@ -5,7 +5,7 @@ const app =  express();
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: true })); // Translate 'Buffer' data type into a string we can read
-app.use(cookieParser()); // Client cookie is parsed which is used to display their username
+app.use(cookieParser()); // Client cookie is parsed 
 
 app.set("view engine", "ejs");
 
@@ -45,7 +45,6 @@ app.get("/hello", (req, res) => { // Route setup for /hello
 
 app.get("/urls", (req, res) => {
   const newUserID = req.cookies["user_id"];
-
   const user = users[newUserID];
 
   const templateVars = {
@@ -61,7 +60,7 @@ app.get("/urls/new", (req, res) => {
   const user = users[newUserID];
 
   const templateVars = {
-    user, // Displays username in this route
+    user, // Displays user in this route
   };
 
   res.render("urls_new", templateVars); // Direct to a route with a form to complete
@@ -84,7 +83,7 @@ app.get("/urls/:id", (req, res) => {
   const user = users[newUserID];
 
   const templateVars = {
-    user, // Displays username in this route
+    user, // Displays user in this route
     id: req.params.id,
     longURL: urlDatabase
   }; // newly created URLs
@@ -129,14 +128,31 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-app.post("/login", (req, res) => { // Route for login
-  const username = req.body.username; 
+app.get("/login", (req, res) => {
+  const newUserID = req.cookies["user_id"];
+  const user = users[newUserID];
 
-  if (!username || username === "") {
-    return res.status(400).send("Username cannot be empty");
+  res.render("login", { user });
+})
+
+app.post("/login", (req, res) => { // Route for login
+  const email = req.body.email;
+  const password = req.body.password; 
+
+  if (!email || !password) {
+    return res.status(400).send("Email and Password need to be filled.");
   }
 
-  res.cookie("username", username); // Save client cookie (username)
+  const user = userLooker(email);
+  if (!user) {
+    return res.status(403).send("Email cannot be found.")
+  }
+
+  if (user.password !== password) {
+    return res.status(403).send("Incorrect password.")
+  }
+
+  res.cookie("user_id", user.id); // Save client cookie (email)
   res.redirect("/urls");
 });
 
@@ -147,7 +163,10 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("register"); // Our register template form
+  const newUserID = req.cookies["user_id"];
+  const user = users[newUserID];
+
+  res.render("register", { user }); // Our register template form
 });
 
 app.post("/register", (req, res) => { // Creates new user for App by filling up our form
@@ -176,11 +195,6 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
 
   res.redirect("/urls");
 });
-
-
-app.get("/login", (req, res) => {
-  res.render("login");
-})
 
 
 function generateRandomString() { // Function to create the id or shortURL
