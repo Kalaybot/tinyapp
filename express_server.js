@@ -54,19 +54,14 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
+app.post("/urls", (req, res) => {
   const newUserID = req.cookies["user_id"];
-
   const user = users[newUserID];
 
-  const templateVars = {
-    user, // Displays user in this route
-  };
+  if (!user) {
+    return res.status(403).send("<h2>403 No Access</h2><p>User must log in.</p>");
+  }
 
-  res.render("urls_new", templateVars); // Direct to a route with a form to complete
-});
-
-app.post("/urls", (req, res) => {
   console.log(req.body); // returns longURL as a JS object
 
   const longURL = req.body.longURL; // Extract longURL to the body
@@ -74,12 +69,26 @@ app.post("/urls", (req, res) => {
 
   urlDatabase[id] = longURL;
 
-  res.redirect(`/urls`); // Redirect to urls/:id. id has value now
+  res.redirect("/urls"); // Redirect to urls/:id. id has value now
+});
+
+app.get("/urls/new", (req, res) => {
+  const newUserID = req.cookies["user_id"];
+  const user = users[newUserID];
+
+  if (!user) {
+    return res.redirect("/login");
+  }
+
+  const templateVars = {
+    user, // Displays user in this route
+  };
+
+  res.render("urls_new", templateVars); // Direct to a route with a form to complete
 });
   
 app.get("/urls/:id", (req, res) => {
   const newUserID = req.cookies["user_id"];
-
   const user = users[newUserID];
 
   const templateVars = {
@@ -93,6 +102,10 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id];
+
+  if (!longURL) {
+    return res.status(404).send("<h2>404 ERROR</h2><p>This shortened URL does not exist.</p>")
+  }
 
   res.redirect(longURL);
 });
@@ -132,6 +145,10 @@ app.get("/login", (req, res) => {
   const newUserID = req.cookies["user_id"];
   const user = users[newUserID];
 
+  if (user) {
+    return res.redirect("/urls");
+  }
+
   res.render("login", { user });
 })
 
@@ -165,6 +182,10 @@ app.post("/logout", (req, res) => {
 app.get("/register", (req, res) => {
   const newUserID = req.cookies["user_id"];
   const user = users[newUserID];
+
+  if (user) {
+    return res.redirect("/urls");
+  }
 
   res.render("register", { user }); // Our register template form
 });
