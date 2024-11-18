@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 
 const app =  express();
 const PORT = 8080;
@@ -13,7 +14,7 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "user@example.com",
+    password: "purple-monkey-dinosaur",
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -136,7 +137,7 @@ app.get("/urls/:id", (req, res) => {
 
   const templateVars = {
     user,
-    id: id,
+    id,
     longURL: url.longURL
   };
   res.render("urls_show", templateVars);
@@ -213,7 +214,8 @@ app.post("/login", (req, res) => { // Route for login
     return res.status(403).send("Email cannot be found.");
   }
 
-  if (user.password !== password) {
+  const hashedPassword = user.password;
+  if (!bcrypt.compareSync(password, hashedPassword)) {
     return res.status(403).send("Incorrect password.");
   }
 
@@ -251,12 +253,14 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
     return res.status(400).send("Email already exist.");
   }
 
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   const newUserID = generateRandomString();
   
   users[newUserID] = {
     id: newUserID,
     email: email,
-    password: password,
+    password: hashedPassword,
   };
 
   res.cookie("user_id", newUserID);
