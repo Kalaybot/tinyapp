@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+const{ getUserByEmail }= require('./helpers')
 
 const app =  express();
 const PORT = 8080;
@@ -213,7 +214,7 @@ app.post("/login", (req, res) => { // Route for login
     return res.status(400).send("Email and Password need to be filled.");
   }
 
-  const user = userLooker(email);
+  const user = getUserByEmail(email, users);
   if (!user) {
     return res.status(403).send("Email cannot be found.");
   }
@@ -252,7 +253,7 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
     return res.status(400).send("Email and Password needs to be filled.");
   }
 
-  const user = userLooker(email);
+  const user = getUserByEmail(email, users);
   if (user) {
     return res.status(400).send("Email already exist.");
   }
@@ -284,16 +285,6 @@ function generateRandomString() { // Function to create the id or shortURL
   }
   return result;
 }
-
-const userLooker = (email) => {
-  for (const newUserID in users) {
-    if (users[newUserID].email === email) {
-      return users[newUserID];
-    }
-  }
-  return null;
-};
-
 
 const urlsForUser = (userID) => {
   const userUrls = {};
