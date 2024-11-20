@@ -1,20 +1,23 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const{ getUserByEmail }= require('./helpers')
+const{ getUserByEmail, generateRandomString, urlDatabase, urlsForUser }= require('./helpers')
 
 const app =  express();
 const PORT = 8080;
 
-app.use(express.urlencoded({ extended: true })); // Translate 'Buffer' data type into a string we can read
-app.use(cookieSession({
+// Middleware to parse URL-encoded bodies (form submissions)
+app.use(express.urlencoded({ extended: true }));
+
+app.use(cookieSession({ // Middleware for managing sessions using cookies
   name: 'session',
-  keys: ['k3ys4cookies'],
-  maxAge: 24 * 60 * 60 * 1000
-})); // Client cookie is parsed
+  keys: ['k3ys4cookies'], // Secret key for signing cookies
+  maxAge: 24 * 60 * 60 * 1000 // Session expiry time (24 hours)
+}));
 
-app.set("view engine", "ejs");
+app.set("view engine", "ejs"); // Set EJS as the template engine for views
 
+// Users database - storing users and their hashed passwords
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -25,17 +28,6 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", 10),
-  },
-};
-
-const urlDatabase = {
-  b2xVn2: {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "userRandomID",
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: "userRandomID",
   },
 };
 
@@ -51,20 +43,23 @@ app.get("/urls.json", (req, res) => { // Route setup for /urls.json
   res.json(urlDatabase); // Server response a JSON string of entire database
 });
 
-app.get("/hello", (req, res) => { // Route setup for /hello
+app.get("/hello", (req, res) => { // Route for a simple hello page
   res.send("<html><body>Hello <b>World</b></body></html>\n"); // server route says "Hello World"
 });
 
+// Route to display all the URLs belonging to the logged-in user
 app.get("/urls", (req, res) => {
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
-  if (!user) {
+  if (!user) { // If the user is not logged in, show a 403 Forbidden error
     return res.status(403).send("<h2>403 Forbidden</h2><p>Log in or Register first.</p>");
   }
 
-  const userUrls = urlsForUser(newUserID);
+  // Fetch URLs belonging to the logged-in user using a helper function
+  const userUrls = urlsForUser(newUserID, urlDatabase);
 
+  // Pass user info and URLs to the template for rendering
   const templateVars = {
     user,
     urls: userUrls,
@@ -86,19 +81,19 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; // Extract longURL to the body
   const id = generateRandomString(); // Generates the new id
 
-  urlDatabase[id] = {
+  urlDatabase[id] = {  // Add the new URL to the urlDatabase
     longURL: longURL,
-    userID: newUserID
+    userId: newUserID
   };
 
   res.redirect("/urls"); // Redirect to urls/:id. id has value now
 });
 
-app.get("/urls/new", (req, res) => {
+app.get("/urls/new", (req, res) => { // Route to render the form for creating a new shortened URL
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
-  if (!user) {
+  if (!user) { // If the user is not logged in, redirect to login page
     return res.redirect("/login");
   }
 
@@ -109,10 +104,10 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars); // Direct to a route with a form to complete
 });
 
-app.get("/u/:id", (req, res) => {
+app.get("/u/:id", (req, res) => { // Route to redirect from a short URL ID to its corresponding long URL
   const id = req.params.id;
 
-  if (!urlDatabase[id]) {
+  if (!urlDatabase[id]) { // If the URL ID doesn't exist, return a 404 error
     return res.status(404).send("<h2>404 ERROR</h2><p>This shortened URL does not exist.</p>");
   }
 
@@ -121,22 +116,22 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
   
-app.get("/urls/:id", (req, res) => {
+app.get("/urls/:id", (req, res) => { // Route to display and edit a specific shortened URL
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
-  if (!user) {
+  if (!user) { // If the user is not logged in, show a 403 error
     return res.status(403).send("<h2>403 No Access</h2><p>Log in to view this URL.</p>");
   }
 
   const id = req.params.id;
   const url = urlDatabase[id]; // Fetch long URL
 
-  if (!url) {
+  if (!url) { // If the URL doesn't exist, return a 404 error
     return res.status(404).send("<h2>404 ERROR</h2><p>This shortened URL does not exist.</p>");
   }
 
-  if (url.userID !== newUserID) {
+  if (url.userId !== newUserID) { // If the logged-in user doesn't own the URL, return a 403 error
     return res.status(403).send("<h2>403 No Access</h2><p>No permission to access this URL</p>");
   }
 
@@ -145,7 +140,7 @@ app.get("/urls/:id", (req, res) => {
     id,
     longURL: url.longURL
   };
-  res.render("urls_show", templateVars);
+  res.render("urls_show", templateVars); // Render the 'urls_show' view
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -163,7 +158,7 @@ app.post("/urls/:id", (req, res) => {
     return res.status(404).send("<h2>404 Not Found</h2><p>URL not found.</p>");
   }
 
-  if (urlDatabase[id].userID !== newUserID) {
+  if (urlDatabase[id].userId !== newUserID) {
     return res.status(403).send("<h2>403 Forbidden</h2><p>You do not own this URL.</p>");
   }
 
@@ -186,7 +181,7 @@ app.post(`/urls/:id/delete`, (req, res) => {
     return res.status(404).send("<h2>404 Not Found</h2><p>URL not found.</p>");
   }
   
-  if (url.userID !== newUserID) {
+  if (url.userId !== newUserID) {
     return res.status(403).send("<h2>403 No Access</h2><p>No permission to access this URL</p>");
   }
 
@@ -195,7 +190,7 @@ app.post(`/urls/:id/delete`, (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/login", (req, res) => {
+app.get("/login", (req, res) => { // Route to render the login form
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
@@ -231,7 +226,7 @@ app.post("/login", (req, res) => { // Route for login
 app.post("/logout", (req, res) => {
   req.session = null; // Logout route, deletes cookie and let you log out
 
-  res.redirect("/urls");
+  res.redirect("/login"); //redirects to login once logout
 });
 
 app.get("/register", (req, res) => {
@@ -245,7 +240,7 @@ app.get("/register", (req, res) => {
   res.render("register", { user }); // Our register template form
 });
 
-app.post("/register", (req, res) => { // Creates new user for App by filling up our form
+app.post("/register", (req, res) => { // Route to handle registration form submission (POST request)
   const email = req.body.email;
   const password = req.body.password;
 
@@ -258,9 +253,9 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
     return res.status(400).send("Email already exist.");
   }
 
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  const hashedPassword = bcrypt.hashSync(password, 10); // Hash the password before saving
 
-  const newUserID = generateRandomString();
+  const newUserID = generateRandomString(); // Generate a new user ID
   
   users[newUserID] = {
     id: newUserID,
@@ -268,31 +263,8 @@ app.post("/register", (req, res) => { // Creates new user for App by filling up 
     password: hashedPassword,
   };
 
-  req.session.user_id = newUserID;
-  console.log("New user:", users);
+  req.session.user_id = newUserID; // Set session with the new user's ID
+  console.log("New user:", users); // Log the new user
 
   res.redirect("/urls");
 });
-
-
-function generateRandomString() { // Function to create the id or shortURL
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-
-  for (let i = 0; i < 6; i++) {
-    const randomCharacters = Math.floor(Math.random() * characters.length);
-    result += characters[randomCharacters];
-  }
-  return result;
-}
-
-const urlsForUser = (userID) => {
-  const userUrls = {};
-
-  for (let id in urlDatabase) {
-    if (urlDatabase[id].userID === userID) {
-      userUrls[id] = urlDatabase[id];
-    }
-  }
-  return userUrls;
-};
