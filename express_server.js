@@ -2,7 +2,8 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const methodOverride = require('method-override');
-const{ getUserByEmail, generateRandomString, urlDatabase, urlsForUser }= require('./helpers')
+const cookieParser = require('cookie-parser');
+const { getUserByEmail, generateRandomString, urlDatabase, urlsForUser } = require('./helpers');
 
 const app =  express();
 const PORT = 8080;
@@ -16,7 +17,9 @@ app.use(cookieSession({ // Middleware for managing sessions using cookies
   maxAge: 24 * 60 * 60 * 1000 // Session expiry time (24 hours)
 }));
 
-app.use(methodOverride('_method'))
+app.use(methodOverride("_method"));
+
+app.use(cookieParser());
 
 app.set("view engine", "ejs"); // Set EJS as the template engine for views
 
@@ -56,7 +59,7 @@ app.get("/urls", (req, res) => {
   const user = users[newUserID];
 
   if (!user) { // If the user is not logged in, show a 403 Forbidden error
-    return res.status(403).send("<h2>403 Forbidden</h2><p>Log in or Register first.</p>");
+    return res.status(403).send(`<h2>403 Forbidden</h2><p><a href="/login">Log in</a> or <a href="/register">Register</a> first.</p>`);
   }
 
   // Fetch URLs belonging to the logged-in user using a helper function
@@ -76,7 +79,7 @@ app.post("/urls", (req, res) => {
   const user = users[newUserID];
 
   if (!user) {
-    return res.status(403).send("<h2>403 No Access</h2><p>User must log in.</p>");
+    return res.status(403).send(`<h2>403 No Access</h2><p>User must <a href="/login">Log in</a>.</p>`);
   }
 
   console.log(req.body); // returns longURL as a JS object
@@ -110,21 +113,55 @@ app.get("/urls/new", (req, res) => { // Route to render the form for creating a 
 app.get("/u/:id", (req, res) => { // Route to redirect from a short URL ID to its corresponding long URL
   const id = req.params.id;
 
-  if (!urlDatabase[id]) { // If the URL ID doesn't exist, return a 404 error
+  const url = urlDatabase[id];
+
+  if (!url) { // If the URL ID doesn't exist, return a 404 error
     return res.status(404).send("<h2>404 ERROR</h2><p>This shortened URL does not exist.</p>");
   }
 
-  const longURL = urlDatabase[id].longURL;
+  // Check if the visitor has a visitor_id cookie, if not, generate one
+  const visitorId = req.cookies.visitor_id || generateRandomString();
+  const visitTimestamp = new Date().toISOString();
 
-  res.redirect(longURL);
+  // Update total visits
+  if (!url.totalVisits) {
+    url.totalVisits = 0; // Initialize totalVisits if undefined
+  }
+  url.totalVisits++;
+
+  // Initialize visit history and unique visitor count if undefined
+  if (!url.visitHistory) {
+    url.visitHistory = [];
+  }
+  if (!url.uniqueVisitors) {
+    url.uniqueVisitors = new Set(); // Use a Set to ensure uniqueness
+  }
+
+  // Add the visit details
+  url.visitHistory.push({ visitorId, timestamp: visitTimestamp });
+
+  // Update unique visitors
+  url.uniqueVisitors.add(visitorId);
+
+  // Set the visitor_id cookie (if it doesn't exist)
+  if (!req.cookies.visitor_id) {
+    res.cookie("visitor_id", visitorId, { maxAge: 24 * 60 * 60 * 1000 }); // Expires in 1 day
+  }
+
+  // Redirect to the long URL
+  res.redirect(url.longURL);
 });
   
-app.put("/urls/:id", (req, res) => { // Route to display and edit a specific shortened URL
+app.get("/urls/:id", (req, res) => { // Route to display and edit a specific shortened URL
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
   if (!user) { // If the user is not logged in, show a 403 error
-    return res.status(403).send("<h2>403 No Access</h2><p>Log in to view this URL.</p>");
+    return res.status(403).send(`
+      <h2>403 No Access</h2>
+      <p><a href="/login">Log in</a> to view this URL.</p>
+    `);
+    
   }
 
   const id = req.params.id;
@@ -141,31 +178,37 @@ app.put("/urls/:id", (req, res) => { // Route to display and edit a specific sho
   const templateVars = {
     user,
     id,
-    longURL: url.longURL
+    longURL: url.longURL,
+    totalVisits: url.totalVisits || 0,
+    uniqueVisitors: url.uniqueVisitors ? url.uniqueVisitors.length : 0,
+    visitHistory: url.visitHistory || []
   };
   res.render("urls_show", templateVars); // Render the 'urls_show' view
 });
 
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
   if (!user) {
-    return res.status(403).send("<h2>403 Forbidden</h2><p>No access, must log in.</p>");
+    return res.status(403).send(`<h2>403 Forbidden</h2><p>No access, must <a href="/login">Log in</a>.</p>`);
   }
 
   const id = req.params.id;
   const updatedURL = req.body.updatedURL; //Fetch updated URL from form
 
-  if (!urlDatabase[id]) {
+  const url = urlDatabase[id];
+
+  if (!url) {
     return res.status(404).send("<h2>404 Not Found</h2><p>URL not found.</p>");
   }
 
-  if (urlDatabase[id].userId !== newUserID) {
+  if (url.userId !== newUserID) {
     return res.status(403).send("<h2>403 Forbidden</h2><p>You do not own this URL.</p>");
   }
 
   urlDatabase[id].longURL = updatedURL;
+
   res.redirect("/urls");
 });
 
@@ -174,7 +217,7 @@ app.delete(`/urls/:id`, (req, res) => {
   const user = users[newUserID];
 
   if (!user) {
-    return res.status(403).send("<h2>403 Forbidden</h2><p>No access, must log in.</p>");
+    return res.status(403).send(`<h2>403 Forbidden</h2><p>No access, must <a href="/login">Log in</a>.</p>`);
   }
 
   const id = req.params.id; // Extracts id of URL

@@ -21,14 +21,25 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+        <h6>Total Visits: <%= totalVisits %></h6>
+    <h6>Unique Visitors: <%= uniqueVisitors %></h6>
+
+    <h6>Visit History:</h6>
+    <ul>
+      <% visitHistory.forEach(function(visit) { %>
+        <li>
+          Visitor ID: <%= visit.visitorId %> | Timestamp: <%= visit.timestamp %>
+        </li>
+      <% }); %>
+    </ul>
       </div>
       <div class="card-footer text-muted">
 
         <h6 class="card-text">Edit</h6>
 
-        <form method="POST" action="/urls/<%= id %>">
+        <form method="POST" action="/urls/<%= id %>?_method=PUT">
           <div class="form-group">
-            <label for="shortURL">New URL:</label>
+            <label for="updatedURL">Update URL:</label>
             <input
               type="text"
               class="form-control-sm border-primary"
@@ -39,7 +50,7 @@
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </form>
-
+         
       </div>
     </div>
     
