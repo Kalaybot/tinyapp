@@ -26,3 +26,24 @@ TinyApp is a simple URL shortening service similar to TinyURL. Users can shorten
 
    ```bash
    git clone https://github.com/Kalaybot/tinyapp
+
+ 2. Navigate into project directory:
+
+  ```bash
+  cd tinyapp
+
+3. Install dependencies:
+
+  ```bash
+  npm install
+
+4. Start the app:
+
+  ```bash
+  npm start
+
+## Final Product
+
+![TinyApp Register Page](docs/Register.png)
+![TinyApp My URLS](docs/URLS.png)
+![TinyApp Edit Page](docs/Edit.png)
