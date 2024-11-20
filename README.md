@@ -35,16 +35,16 @@ TinyApp is a simple URL shortening service similar to TinyURL. Users can shorten
 
  2. Navigate into project directory:
 
-  ```bash
+  
   cd tinyapp
 
 3. Install dependencies:
 
-  ```bash
+  
   npm install
 
 4. Start the app:
 
-  ```bash
+  
   npm start
 
