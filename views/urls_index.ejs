@@ -33,10 +33,12 @@
             <td><%= id %></td>
             <td><%= urls[id].longURL %></td>
             <td>
-              <a href="/urls/<%= id %>" class="btn btn-outline-primary">Edit</a>
+              <form method="POST" action="/urls/<%= id %>?_method=PUT" style="display: inline;">
+                <button type="submit" class="btn btn-outline-primary">Edit</button>
+              </form>
             </td>
             <td>
-              <form method="POST" action="/urls/<%= id %>/delete" style="display: inline;">
+              <form method="POST" action="/urls/<%= id %>?_method=DELETE" style="display: inline;">
                 <button type="submit" class="btn btn-outline-danger">Delete</button>
               </form>
             </td>

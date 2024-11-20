@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+const methodOverride = require('method-override');
 const{ getUserByEmail, generateRandomString, urlDatabase, urlsForUser }= require('./helpers')
 
 const app =  express();
@@ -14,6 +15,8 @@ app.use(cookieSession({ // Middleware for managing sessions using cookies
   keys: ['k3ys4cookies'], // Secret key for signing cookies
   maxAge: 24 * 60 * 60 * 1000 // Session expiry time (24 hours)
 }));
+
+app.use(methodOverride('_method'))
 
 app.set("view engine", "ejs"); // Set EJS as the template engine for views
 
@@ -116,7 +119,7 @@ app.get("/u/:id", (req, res) => { // Route to redirect from a short URL ID to it
   res.redirect(longURL);
 });
   
-app.get("/urls/:id", (req, res) => { // Route to display and edit a specific shortened URL
+app.put("/urls/:id", (req, res) => { // Route to display and edit a specific shortened URL
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
@@ -166,7 +169,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post(`/urls/:id/delete`, (req, res) => {
+app.delete(`/urls/:id`, (req, res) => {
   const newUserID = req.session.user_id;
   const user = users[newUserID];
 
