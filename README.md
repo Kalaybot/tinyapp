@@ -44,6 +44,6 @@ TinyApp is a simple URL shortening service similar to TinyURL. Users can shorten
 
 ## Final Product
 
-![TinyApp Register Page](docs/Register.png)
+![TinyApp Register Page](https://github.com/Kalaybot/tinyapp/blob/main/docs/Register.png)
 ![TinyApp My URLS](docs/URLS.png)
 ![TinyApp Edit Page](docs/Edit.png)
