@@ -2,6 +2,12 @@
 
 TinyApp is a simple URL shortening service similar to TinyURL. Users can shorten long URLs and track the number of times they are visited, along with details about the visitors.
 
+## Final Product
+
+![TinyApp Register Page](https://github.com/Kalaybot/tinyapp/blob/main/docs/Register.png)
+![TinyApp My URLS](docs/URLS.png)
+![TinyApp Edit Page](docs/Edit.png)
+
 ## Features
 
 - **URL Shortening**: Users can create a short URL that redirects to a long URL.
@@ -42,8 +48,3 @@ TinyApp is a simple URL shortening service similar to TinyURL. Users can shorten
   ```bash
   npm start
 
-## Final Product
-
-![TinyApp Register Page](https://github.com/Kalaybot/tinyapp/blob/main/docs/Register.png)
-![TinyApp My URLS](docs/URLS.png)
-![TinyApp Edit Page](docs/Edit.png)
